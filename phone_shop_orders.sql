@@ -18,6 +18,7 @@
 --
 -- Table structure for table `orders`
 --
+USE phone_shop;
 
 DROP TABLE IF EXISTS `orders`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;

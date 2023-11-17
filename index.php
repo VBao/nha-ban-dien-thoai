@@ -97,6 +97,8 @@ if (isset($_POST['okButton']) && isset($_POST['itemId'])) {
 
     // Call the function to remove the item from the cart
     removeFromCart($itemId);
+    header("Refresh:0");
+    exit;
 }
 
 // Check if the form is submitted
@@ -178,7 +180,7 @@ function getAllOrdersWithItems()
     }
 
     // Assuming you have 'orders' and 'order_items' tables
-    $sql = "SELECT o.*, o.name as cname ,oi.product_id, oi.quantity, p.name, p.price 
+    $sql = "SELECT o.*, o.name as cname ,oi.product_id, oi.quantity, p.name, p.price,o.note
             FROM orders o
             JOIN order_items oi ON o.id = oi.order_id
             JOIN product p ON oi.product_id = p.id
@@ -201,6 +203,7 @@ function getAllOrdersWithItems()
                 'name' => $row['cname'],
                 'address' => $row['address'],
                 'phone' => $row['phone'],
+                'note' => $row['note'],
                 'items' => array()
             );
         }
@@ -377,68 +380,68 @@ $allOrders = getAllOrdersWithItems();
         </div>
     </section>
 
-    <?php if ($_SESSION["cart"] == []): ?>
-    <section class="order">
-        <h1 class="heading"> Shopping<span> Cart</span> </h1>
-        <!-- Shopping Cart Table -->
-        <div>
-            <table class="table-order">
-                <thead>
-                    <tr>
-                        <th scope="col-order">Product</th>
-                        <th scope="col-order">Price</th>
-                        <th scope="col-order">Quantity</th>
-                        <th scope="col-order">Total</th>
-                        <th scope="col">Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($_SESSION['cart'] as $cartItem):
-                        ?>
+    <?php if ($_SESSION["cart"] != []): ?>
+        <section class="order">
+            <h1 class="heading"> Shopping<span> Cart</span> </h1>
+            <!-- Shopping Cart Table -->
+            <div>
+                <table class="table-order">
+                    <thead>
                         <tr>
-                            <td>
-                                <?php echo $cartItem['name']; ?>
-                            </td>
-                            <td>
-                                <?php echo $cartItem['price']; ?>
-                            </td>
-                            <td>
-                                <?php echo $cartItem['quantity']; ?>
-                            </td>
-                            <td>
-                                <?php echo $cartItem['quantity'] * $cartItem['price']; ?>
-                            </td>
-                            <?php echo "<td><button onclick='removeFromCart({$cartItem['id']})'>Remove</button></td>"; ?>
+                            <th scope="col-order">Product</th>
+                            <th scope="col-order">Price</th>
+                            <th scope="col-order">Quantity</th>
+                            <th scope="col-order">Total</th>
+                            <th scope="col">Action</th>
                         </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-        </div>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($_SESSION['cart'] as $cartItem):
+                            ?>
+                            <tr>
+                                <td>
+                                    <?php echo $cartItem['name']; ?>
+                                </td>
+                                <td>
+                                    <?php echo $cartItem['price']; ?>
+                                </td>
+                                <td>
+                                    <?php echo $cartItem['quantity']; ?>
+                                </td>
+                                <td>
+                                    <?php echo $cartItem['quantity'] * $cartItem['price']; ?>
+                                </td>
+                                <?php echo "<td><button class='btn-del' type='button' onclick='removeFromCart({$cartItem['id']})' data-item-id='{$cartItem['id']}'>Remove</button></td>"; ?>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
 
-        <!-- Order Form -->
-        <div class="order-form">
-            <h2>Order Information</h2>
-            <form action="#" method="post">
-                <div class="mb-3">
-                    <label for="name" class="form-label">Name:</label>
-                    <input type="text" class="form-control" id="name" name="name" required>
-                </div>
-                <div class="mb-3">
-                    <label for="address" class="form-label">Address:</label>
-                    <textarea class="form-control" id="address" name="address" required></textarea>
-                </div>
-                <div class="mb-3">
-                    <label for="phone" class="form-label">Phone Number:</label>
-                    <input type="tel" class="form-control" id="phone" name="phone" required>
-                </div>
-                <div>
-                    <label for="phone" class="form-label">Note:</label>
-                    <textarea name="note" class="box" placeholder="Note" id="" cols="30" rows="10"></textarea>
-                </div>
-                <button type="submit" class="btn btn-success">Place Order</button>
-            </form>
-        </div>
-    </section>
+            <!-- Order Form -->
+            <div class="order-form">
+                <h2>Order Information</h2>
+                <form action="#" method="post">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Name:</label>
+                        <input type="text" class="form-control" id="name" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="address" class="form-label">Address:</label>
+                        <textarea class="form-control" id="address" name="address" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="phone" class="form-label">Phone Number:</label>
+                        <input type="tel" class="form-control" id="phone" name="phone" required>
+                    </div>
+                    <div>
+                        <label for="phone" class="form-label">Note:</label>
+                        <textarea name="note" class="box" placeholder="Note" id="" cols="30" rows="10"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-success">Place Order</button>
+                </form>
+            </div>
+        </section>
 
     <?php endif; ?>
     <section class="order-list">
@@ -448,6 +451,7 @@ $allOrders = getAllOrdersWithItems();
                 <th>Name</th>
                 <th>Address</th>
                 <th>Phone</th>
+                <th>Note</th>
             </tr>
             <?php foreach ($allOrders as $order): ?>
                 <tr class="collapsible" data-order-id="<?php echo $order['id']; ?>">
@@ -463,9 +467,12 @@ $allOrders = getAllOrdersWithItems();
                     <td>
                         <?php echo $order['phone']; ?>
                     </td>
+                    <td>
+                        <?php echo $order['note']; ?>
+                    </td>
                 </tr>
                 <tr class="hidden-row" data-order-id="<?php echo $order['id']; ?>">
-                    <td colspan="4">
+                    <td colspan="5">
                         <!-- Display order items in a nested table -->
                         <table border="1">
                             <tr>
@@ -680,19 +687,13 @@ $allOrders = getAllOrdersWithItems();
         <h1 class="heading"><span> contact </span> us </h1>
 
         <div class="row">
-
             <form action="">
                 <input type="text" placeholder="Name" class="box">
                 <input type="email" placeholder="Email" class="box">
                 <input type="number" placeholder="Number" class="box">
                 <textarea name="" class="box" placeholder="Message" id="" cols="30" rows="10"></textarea>
-                <input type="submit" value="send message" class="btn">
+                <div class="msg-btn"><input type="submit" value="send message" class="btn"></div>
             </form>
-
-            <div class="image">
-                <img src="" alt="">
-            </div>
-
         </div>
     </section>
 
@@ -754,7 +755,7 @@ $allOrders = getAllOrdersWithItems();
                 success: function (response) {
                     // Display a confirmation message (you can customize this part)
                     alert('Item added to cart!');
-                    // window.location.reload();
+                    window.location.reload();
                 },
                 error: function () {
                     // Handle errors if needed
@@ -763,28 +764,24 @@ $allOrders = getAllOrdersWithItems();
             });
         });
     });
+
+
     function removeFromCart(itemId) {
         var confirmRemove = confirm("Are you sure you want to remove this item from the cart?");
         if (confirmRemove) {
             // Call the PHP script to remove the item from the cart
             var xhr = new XMLHttpRequest();
-            xhr.open("POST", "", true); // Set the appropriate URL or leave it blank for the current page
+            xhr.open("POST", "remove_from_cart.php", true); // Replace with the correct URL
             xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
             xhr.onreadystatechange = function () {
                 if (xhr.readyState == 4 && xhr.status == 200) {
-                    // Remove the corresponding row from the table
-                    var row = document.querySelector("tr[data-item-id='" + itemId + "']");
-                    if (row) {
-                        row.remove();
-                    }
+                    // Reload the page after successful removal
                     window.location.reload();
-
                 }
             };
             xhr.send("okButton=1&itemId=" + itemId);
         }
     }
-
 
     // Collasp order detail
     document.addEventListener("DOMContentLoaded", function () {
