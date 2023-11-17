@@ -377,6 +377,7 @@ $allOrders = getAllOrdersWithItems();
         </div>
     </section>
 
+    <?php if ($_SESSION["cart"] == []): ?>
     <section class="order">
         <h1 class="heading"> Shopping<span> Cart</span> </h1>
         <!-- Shopping Cart Table -->
@@ -439,6 +440,7 @@ $allOrders = getAllOrdersWithItems();
         </div>
     </section>
 
+    <?php endif; ?>
     <section class="order-list">
         <table border="1">
             <tr>
