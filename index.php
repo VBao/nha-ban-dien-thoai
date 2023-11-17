@@ -8,7 +8,9 @@ $is_connect = "FALSE";
 $temp = "";
 
 session_start();
-
+if (!isset($_SESSION["cart"])) {
+    $_SESSION["cart"] = [];
+}
 // Create connection
 $conn = mysqli_connect($servername, $username, $password, $dbname);
 
