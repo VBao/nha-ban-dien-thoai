@@ -11,10 +11,9 @@ session_start();
 if (!isset($_SESSION["cart"])) {
     $_SESSION["cart"] = [];
 }
-// Create connection
-$conn = mysqli_connect($servername, $username, $password, $dbname);
 
-// Check connection
+
+$conn = mysqli_connect($servername, $username, $password, $dbname);
 if (!$conn) {
     die("Connection failed: " . mysqli_connect_error());
 }
@@ -35,37 +34,21 @@ if (mysqli_num_rows($result) > 0) {
 }
 
 if (isset($_GET['addToCart'])) {
-    $temp = "adjawjhdbkaw";
-
     $servername = "localhost";
     $username = "root";
     $password = "";
     $dbname = "phone_shop";
-    // Create connection
-
     $conn = mysqli_connect($servername, $username, $password, $dbname);
-
-
     $itemId = $_GET['addToCart'];
-    // Check if the item is already in the cart
     $key = array_search($itemId, array_column($_SESSION['cart'], 'id'));
-
     if ($key !== false) {
-        // If the item is already in the cart, update the quantity
         $_SESSION['cart'][$key]['quantity'] += 1;
     } else {
-
         $sql = "SELECT id, name, price, image FROM product WHERE id = $itemId";
         $result = mysqli_query($conn, $sql);
         $row = mysqli_fetch_assoc($result);
-        // If the item is not in the cart, add it with a quantity of 1
         $_SESSION['cart'][] = array('id' => $itemId, 'quantity' => 1, 'name' => $row['name'], 'price' => $row['price']);
     }
-
-    // // Close the database connection
-    // $conn->close();
-
-    // Return a JSON response to indicate success
     header('Content-Type: application/json');
     echo json_encode(['success' => true]);
     exit();
@@ -120,27 +103,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 function saveOrderToDatabase($name, $address, $phone, $note, $cartItems)
 {
-
     $servername = "localhost";
     $username = "root";
     $password = "";
     $dbname = "phone_shop";
-    // Create connection
     $conn = mysqli_connect($servername, $username, $password, $dbname);
-
     if ($conn->connect_error) {
         die("Connection failed: " . $conn->connect_error);
     }
-
-    // Assuming you have an 'orders' table with columns: id, name, address, phone
     $sql = "INSERT INTO orders (name, address, phone, note) VALUES ('$name', '$address', '$phone', '$note')";
-
-    // Perform the query and check for errors
     if ($conn->query($sql) === TRUE) {
         // Get the order ID of the inserted row
         $orderID = $conn->insert_id;
-
-        // Insert each item from the cart into the 'order_items' table
         foreach ($cartItems as $cartItem) {
             $productId = $cartItem['id'];
             $quantity = $cartItem['quantity'];
@@ -148,52 +122,35 @@ function saveOrderToDatabase($name, $address, $phone, $note, $cartItems)
             $conn->query($sql);
         }
 
-        // Clear the cart in the session after the order is saved
         $_SESSION['cart'] = array();
         echo "Order placed successfully!";
     } else {
         echo "Error: " . $sql . "<br>" . $conn->error;
     }
-
-
-    // // Close the database connection
-    // $conn->close();
 }
 
 // Function to get all orders with order items from the database
 function getAllOrdersWithItems()
 {
-
     $servername = "localhost";
     $username = "root";
     $password = "";
     $dbname = "phone_shop";
-    // Create connection
     $conn = mysqli_connect($servername, $username, $password, $dbname);
-
-    // Create a connection to the database
     $conn = new mysqli($servername, $username, $password, $dbname);
-
-    // Check the connection
     if ($conn->connect_error) {
         die("Connection failed: " . $conn->connect_error);
     }
-
-    // Assuming you have 'orders' and 'order_items' tables
-    $sql = "SELECT o.*, o.name as cname ,oi.product_id, oi.quantity, p.name, p.price,o.note
+    $sql = "SELECT o.*, o.name as cname ,oi.product_id, oi.quantity,
+     p.name, p.price,o.note
             FROM orders o
             JOIN order_items oi ON o.id = oi.order_id
             JOIN product p ON oi.product_id = p.id
             ORDER BY o.id";
-
-    // Perform the query and check for errors
     $result = $conn->query($sql);
-
     if ($result === false) {
         die("Error in the query: " . $conn->error);
     }
-
-    // Transform the result into an associative array
     $orders = array();
     while ($row = $result->fetch_assoc()) {
         $orderId = $row['id'];
@@ -207,7 +164,6 @@ function getAllOrdersWithItems()
                 'items' => array()
             );
         }
-
         $orders[$orderId]['items'][] = array(
             'product_id' => $row['product_id'],
             'product_name' => $row['name'],
@@ -215,14 +171,8 @@ function getAllOrdersWithItems()
             'quantity' => $row['quantity']
         );
     }
-
-    // // Close the database connection
-    // $conn->close();
-
     return $orders;
 }
-
-// Get all orders with items
 $allOrders = getAllOrdersWithItems();
 
 
@@ -281,8 +231,8 @@ $allOrders = getAllOrdersWithItems();
                     </div>
                     <div class="buttons">
                         <button id="prev">
-                            << /button>
-                                <button id="next">></button>
+                            < <button id="next">>
+                        </button>
                     </div>
                     <ul class="dots">
                         <li class="active"></li>
